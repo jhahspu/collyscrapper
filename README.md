@@ -1,4 +1,7 @@
-# Go-Colly Scrapper Example
+# GoColly Scrapper Example
 
-## ToDo
+Testing GoColly package
 
+- [x] titles
+- [ ] other details
+- [ ] id == imdb id ?
