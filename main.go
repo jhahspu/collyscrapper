@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -38,7 +40,7 @@ func main() {
 			movie.Summary = el.ChildText(".summary")
 			movie.Metascore = el.ChildText(".clamp-metascore a div")
 			movie.Userscore = el.ChildText(".clamp-userscore a div")
-			movie.Link = "metacritic.com/" + el.ChildAttr("a.title", "href")
+			movie.Link = "https://www.metacritic.com" + el.ChildAttr("a.title", "href")
 			movies = append(movies, movie)
 		})
 	})
@@ -50,6 +52,7 @@ func main() {
 	c.Visit("https://www.metacritic.com/browse/movies/score/metascore/year/filtered")
 
 	writeJSON(movies)
+	writeCSV(movies)
 }
 
 func writeJSON(data []Movie) {
@@ -57,7 +60,42 @@ func writeJSON(data []Movie) {
 	if err != nil {
 		log.Println("Unable to create json file")
 	}
-	cts := time.Now().Format("2021-Jan-01_13-01-02")
+	cts := time.Now().Format("2021-Jan-01")
 	fn := "metacritic_best_movies_2021_" + cts + ".json"
 	_ = ioutil.WriteFile(fn, file, 0644)
+}
+
+func writeCSV(data []Movie) {
+	cts := time.Now().Format("2021-Jan-01")
+	fn := "metacritic_best_movies_2021_" + cts + ".csv"
+	csvFile, err := os.Create(fn)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer csvFile.Close()
+
+	w := csv.NewWriter(csvFile)
+	var header []string
+	header = append(header, "Rank")
+	header = append(header, "Title")
+	header = append(header, "Release_Date")
+	header = append(header, "Metascore")
+	header = append(header, "Userscore")
+	header = append(header, "Summary")
+	header = append(header, "Link")
+	w.Write(header)
+
+	for _, mv := range data {
+		var row []string
+		row = append(row, mv.Rank)
+		row = append(row, mv.Title)
+		row = append(row, mv.Release_Date)
+		row = append(row, mv.Metascore)
+		row = append(row, mv.Userscore)
+		row = append(row, mv.Summary)
+		row = append(row, mv.Link)
+		w.Write(row)
+	}
+
+	w.Flush()
 }
