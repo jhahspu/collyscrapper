@@ -2,6 +2,5 @@
 
 Testing GoColly package
 
-- [x] titles
-- [ ] other details
-- [ ] id == imdb id ?
+- [x] all details main page other details
+- [ ] scrape depth 1

@@ -5,41 +5,51 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/gocolly/colly"
 )
 
 type Movie struct {
-	Title string `json:"title"`
-	// Date string `json:"date"`
-	// Summary string `json:"summary"`
-	// Metascore string `json:"metascore"`
-	// Userscore string `json:"userscore"`
+	Rank         string `json:"rank"`
+	Title        string `json:"title"`
+	Release_Date string `json:"release_date"`
+	Summary      string `json:"summary"`
+	Metascore    string `json:"metascore"`
+	Userscore    string `json:"userscore"`
+	Link         string `json:"link"`
 }
 
 func main() {
-	listMovies := make([]Movie, 0)
 
-	collector := colly.NewCollector(
+	c := colly.NewCollector(
 		colly.AllowedDomains("metacritic.com", "www.metacritic.com"),
+		colly.CacheDir("./metacritic_movies_2021"),
 	)
 
-	collector.OnHTML(".clamp-summary-wrap a h3", func(el *colly.HTMLElement) {
-		title := el.Text
-		movie := Movie{
-			Title: title,
-		}
+	movies := make([]Movie, 0, 200)
 
-		listMovies = append(listMovies, movie)
+	c.OnHTML("tr", func(e *colly.HTMLElement) {
+		e.ForEach(".clamp-summary-wrap", func(_ int, el *colly.HTMLElement) {
+			movie := Movie{}
+			movie.Rank = el.ChildText("span.numbered")
+			movie.Title = el.ChildText("a.title h3")
+			movie.Release_Date = el.ChildText(".clamp-details span:first-of-type")
+			movie.Summary = el.ChildText(".summary")
+			movie.Metascore = el.ChildText(".clamp-metascore a div")
+			movie.Userscore = el.ChildText(".clamp-userscore a div")
+			movie.Link = "metacritic.com/" + el.ChildAttr("a.title", "href")
+			movies = append(movies, movie)
+		})
 	})
 
-	collector.OnRequest(func(req *colly.Request) {
+	c.OnRequest(func(req *colly.Request) {
 		fmt.Println("Visiting", req.URL.String())
 	})
 
-	collector.Visit("https://www.metacritic.com/browse/movies/score/metascore/year/filtered")
+	c.Visit("https://www.metacritic.com/browse/movies/score/metascore/year/filtered")
 
-	writeJSON(listMovies)
+	writeJSON(movies)
 }
 
 func writeJSON(data []Movie) {
@@ -47,5 +57,7 @@ func writeJSON(data []Movie) {
 	if err != nil {
 		log.Println("Unable to create json file")
 	}
-	_ = ioutil.WriteFile("metacritic_best_movies_2021.json", file, 0644)
+	cts := time.Now().Format("2021-Jan-01_13-01-02")
+	fn := "metacritic_best_movies_2021_" + cts + ".json"
+	_ = ioutil.WriteFile(fn, file, 0644)
 }
