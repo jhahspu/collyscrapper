@@ -1,4 +1,4 @@
-# GoColly Scrapper Example
+# GoColly Scraper Example
 
 Testing GoColly package
 
