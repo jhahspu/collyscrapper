@@ -26,7 +26,7 @@ func main() {
 
 	c := colly.NewCollector(
 		colly.AllowedDomains("metacritic.com", "www.metacritic.com"),
-		colly.CacheDir("./metacritic_movies_2021"),
+		colly.CacheDir("./metacritic_movies_2022"),
 	)
 
 	movies := make([]Movie, 0, 200)
@@ -60,13 +60,13 @@ func writeJSON(data []Movie) {
 	if err != nil {
 		log.Println("Unable to create json file")
 	}
-	cts := time.Now().Format("2021-Jan-01")
-	fn := "metacritic_best_movies_2021_" + cts + ".json"
+	cts := time.Now().Format("2006-Jan-02")
+	fn := "metacritic_best_movies_" + cts + ".json"
 	_ = ioutil.WriteFile(fn, file, 0644)
 }
 
 func writeCSV(data []Movie) {
-	cts := time.Now().Format("2021-Jan-01")
+	cts := time.Now().Format("2006-Jan-02")
 	fn := "metacritic_best_movies_2021_" + cts + ".csv"
 	csvFile, err := os.Create(fn)
 	if err != nil {
